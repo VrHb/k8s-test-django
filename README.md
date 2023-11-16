@@ -35,40 +35,64 @@ $ docker-compose run web ./manage.py createsuperuser
 
 ## Как развернуть сайт с помощью kubernetes
 
-1. Установите minikube, см. [доку](https://minikube.sigs.k8s.io/docs/start/)
+### Установите minikube, см. [доку](https://minikube.sigs.k8s.io/docs/start/)
 
-2. Запустите контейнер с бд
+### Запустите контейнер с бд
 - в `docker-compose` поменяйте публичный IP для доступа к бд
 
 ```sh 
 docker-compose up -d db 
 ```
 
-3. Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+### Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
 
-3. Подгрузите в кластер переменные окружения
+### Подгрузите в кластер переменные окружения
 
 ```sh 
 kubectl apply -f config.yml
 ```
-    - Чтобы обновить configmap 
 
-    ```sh 
-    kubectl apply -f config.yml
-    ```
+#### Чтобы обновить configmap 
 
-    ```sh 
-    kubectl rollout restart deployment
-    ```
+```sh 
+kubectl apply -f config.yml
+```
 
-4. Разверните деплоимент
+```sh 
+kubectl rollout restart deployment
+```
+
+### Разверните деплоимент
 
 ```sh 
 kubectl apply -f django-deployment.yml
 ```
 
-5. Запустите сервис
+### Запустите сервис
 
 ```sh 
 minikube service django-service
+```
+#### Настройка ingress
+
+1. активируйте ingress в minikube
+
+```sh 
+minikbue addons enable ingress
+```
+
+2. измените домен в `/etc/hosts`
+
+3. добавьте его в `ingress-django.yml`
+
+```yaml 
+spec:
+  rules:
+  - host: <you_domain>
+```
+
+4. запустите ingress в класстере
+
+```sh 
+kubectk apply -f ingress-django.yml
 ```
