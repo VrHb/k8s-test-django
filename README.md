@@ -32,3 +32,36 @@ $ docker-compose run web ./manage.py createsuperuser
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+## Как развернуть сайт с помощью kubernetes
+
+1. Установите minikube, см. [доку](https://minikube.sigs.k8s.io/docs/start/)
+
+2. Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+
+3. Подгрузите в кластер переменные окружения
+
+```sh 
+kubectl apply -f config.yml
+```
+    - Чтобы обновить configmap 
+
+    ```sh 
+    kubectl apply -f config.yml
+    ```
+
+    ```sh 
+    kubectl rollout restart deployment
+    ```
+
+4. Разверните деплоимент
+
+```sh 
+kubectl apply -f django-deployment.yml
+```
+
+5. Запустите сервис
+
+```sh 
+minikube service django-service
+```
