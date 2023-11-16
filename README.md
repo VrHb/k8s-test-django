@@ -37,7 +37,14 @@ $ docker-compose run web ./manage.py createsuperuser
 
 1. Установите minikube, см. [доку](https://minikube.sigs.k8s.io/docs/start/)
 
-2. Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+2. Запустите контейнер с бд
+- в `docker-compose` поменяйте публичный IP для доступа к бд
+
+```sh 
+docker-compose up -d db 
+```
+
+3. Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
 
 3. Подгрузите в кластер переменные окружения
 
