@@ -3,16 +3,17 @@ version: "3"
 services:
   db:
     image: postgres:12.0-alpine
+    platform: linux/arm64/v8
     volumes:
       - db_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB-test_k8s}
-      POSTGRES_USER: ${POSTGRES_USER-test_k8s}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-OwOtBep9Frut}
+    env_file: ./.env
+    ports:
+      - 10.34.35.3:5432:5432
 
   web:
     build: backend_main_django
     image: django_app
+    platform: linux/arm64/v8
     env_file: ./.env
     volumes:
       - ./backend_main_django:/code
