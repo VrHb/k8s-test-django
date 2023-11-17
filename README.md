@@ -110,7 +110,7 @@ spec:
 ```sh 
 kubectk apply -f ingress-django.yml
 ```
-### Опционально можно запустить postgresql в класстере
+### Опционально можно запустить postgresql в кластере
 
 1. Устанавливаем helm, смотри [доку](https://helm.sh/docs/intro/install/)
 
