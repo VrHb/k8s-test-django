@@ -13,7 +13,7 @@ spec:
         image: django_app
         imagePullPolicy: Never
         envFrom:
-          - configMapRef:
+          - configMapRef: 
               name: django-config
         command: ["./manage.py"]
         args: ["migrate", "--noinput"]

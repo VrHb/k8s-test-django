@@ -110,3 +110,35 @@ spec:
 ```sh 
 kubectk apply -f ingress-django.yml
 ```
+### Опционально можно запустить postgresql в класстере
+
+1. Устанавливаем helm, смотри [доку](https://helm.sh/docs/intro/install/)
+
+2. Устанавливаем postgres pod 
+
+```sh 
+helm install <pod_name> oci://registry-1.docker.io/bitnamicharts/postgresql
+```
+
+3. Подключаемся к бд внутри кластера и настраиваем
+
+```sh 
+kubectl run <db_pod_name> --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:16.1.0-debian-11-r4 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+      --command -- psql --host <db_pod_name> -U postgres -d postgres -p 5432
+```
+
+- Создаем БД, пользователя, обязательно даем ему полный контроль над базой
+
+```sql 
+GRANT ALL ON DATABASE <db_name> TO <user_name>;
+ALTER DATABASE <db_name> OWNER TO <user_name>;
+```
+
+4. Накатываем миграции
+
+```sh 
+kubectl apply -f django-migrate-job.yml
+```
+
+
+ 
