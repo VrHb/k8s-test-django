@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata: 
+  name: django-migrate
+  labels:
+    name: django-migrate 
+spec:
+  ttlSecondsAfterFinished: 30
+  template:
+    spec:
+      containers:
+      - name: djangoapp 
+        image: django_app
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: django-config
+        command: ["./manage.py"]
+        args: ["migrate", "--noinput"]
+      restartPolicy: OnFailure
