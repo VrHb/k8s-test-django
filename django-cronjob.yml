@@ -3,13 +3,16 @@ kind: CronJob
 metadata:
   name: django-clearsession-cronjob
 spec:
+  startingDeadlineSeconds: 20
   schedule: "0 0 1 * *"
   jobTemplate:
     spec: 
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 30
       template:
-        spec: 
+        spec:
           containers:
-          - name: djangoapp
+          - name: djangoapp 
             image: django_app
             imagePullPolicy: Never
             envFrom:
@@ -18,5 +21,3 @@ spec:
             command: ["./manage.py"]
             args: ["clearsessions"]
           restartPolicy: OnFailure
-
-
