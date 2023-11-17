@@ -73,6 +73,20 @@ kubectl apply -f django-deployment.yml
 ```sh 
 minikube service django-service
 ```
+
+### Запустите cronjob для удаления истекших сессий django 
+
+```sh 
+kubectl apply -f django-cronjon.yml
+```
+
+- Можно запустить принудительно
+
+
+```sh 
+kubectl create job clearsession --from=cronjob/django-clearsession-cronjob 
+```
+
 #### Настройка ingress
 
 1. активируйте ingress в minikube
@@ -81,7 +95,7 @@ minikube service django-service
 minikbue addons enable ingress
 ```
 
-2. измените домен в `/etc/hosts`
+2. измените домен в `/etc/hosts` и добавте его в ALLOWED_HOSTS в файле `config.yml`
 
 3. добавьте его в `ingress-django.yml`
 
