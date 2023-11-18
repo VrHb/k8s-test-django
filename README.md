@@ -83,15 +83,15 @@ docker-compose up -d db
 kubectl apply -f config.yml
 ```
 
-#### Чтобы обновить configmap 
-
-```sh 
-kubectl apply -f config.yml
-```
-
-```sh 
-kubectl rollout restart deployment
-```
+> #### Чтобы обновить configmap 
+>
+> ```sh 
+> kubectl apply -f config.yml
+> ```
+> 
+> ```sh 
+> kubectl rollout restart deployment
+> ```
 
 ### Разверните деплоимент
 
@@ -118,7 +118,7 @@ kubectl apply -f django-cronjon.yml
 kubectl create job clearsession --from=cronjob/django-clearsession-cronjob 
 ```
 
-#### Настройка ingress
+### Настройка ingress
 
 1. активируйте ingress в minikube
 
@@ -140,6 +140,12 @@ spec:
 
 ```sh 
 kubectk apply -f ingress-django.yml
+```
+
+5. Запустите tunnel
+
+```sh 
+minikube tunnel
 ```
 
 
