@@ -33,102 +33,105 @@ $ docker-compose run web ./manage.py createsuperuser
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
 
-## Как развернуть сайт с помощью kubernetes
+## Как развернуть сайт с помощью minikube 
 
-### Установите minikube, см. [доку](https://minikube.sigs.k8s.io/docs/start/)
+### Подготовка окружения
 
-### Запустите контейнер с бд
-- в `docker-compose` поменяйте публичный IP для доступа к бд
+- Добавьте в рабочую директорию `.env.k8s` файл со следующими перемеными окружения:
+
+`SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
+
+`DEBUG` -- настройка Django для включения отладочного режима. Принимает значения `TRUE` или `FALSE`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-DEBUG).
+
+`ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
+
+`DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+`DATABASE_IP` -- публичный ip адрес базы данных, чтобы сервисы внутри кубера могли с ней общаться.
+
+- Соберите docker-образы
 
 ```sh 
-docker-compose up -d db 
+docker-compose -f docker-compose.k8s.yml build -q 
 ```
 
-> #### Опционально можно запустить postgresql в кластере
-> 
-> 1. Устанавливаем helm, смотри [доку](https://helm.sh/docs/intro/install/)
-> 
-> 2. Устанавливаем postgres в кластер 
-> 
-> ```sh 
-> helm install <db_service_name> oci://registry-1.docker.io/bitnamicharts/postgresql
-> ```
-> 3. Меняем ip базы данных в url на cluster ip, посмотреть можно через `kubectl get services`
-> 
-> 3. Подключаемся к бд внутри кластера и настраиваем
-> 
-> ```sh 
-> kubectl run <db_pod_name> --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:16.1.0-debian-11-r4 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
->       --command -- psql --host <db_pod_name> -U postgres -d postgres -p 5432
-> ```
-> 
-> - Создаем БД, пользователя, обязательно даем ему полный контроль над базой
-> 
-> ```sql 
-> GRANT ALL ON DATABASE <db_name> TO <user_name>;
-> ALTER DATABASE <db_name> OWNER TO <user_name>;
-> ```
-> 
-> 4. Накатываем миграции
-> 
-> ```sh 
-> kubectl apply -f django-migrate-job.yml
-> ```
+- Установите и запустите minikube. [Документация по установке](https://minikube.sigs.k8s.io/docs/start/)
 
-### Создайте config-файл с переменными окружения, [документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+**Существует несколько вариантов запуска minikube, выберите оптимальный для себя.** [Документация](https://minikube.sigs.k8s.io/docs/start/)  
 
-### Подгрузите в кластер переменные окружения
+```sh 
+minikube start --driver docker
+```
+
+- Загрузите в minikube docker-образ. 
+
+```sh 
+minikube load django_app 
+```
+
+- Запустите контейнер с бд.
+
+```sh 
+docker-compose -f docker-compose.k8s.yml up -d db 
+```
+
+- Создайте config-файл с переменными окружения и подгрузите его в minikube. [Документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+
+**Пример конфига**
+
+```yaml 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+data:
+  ALLOWED_HOSTS: 127.0.0.1, <site_domain> 
+  DATABASE_URL: postgres://test_k8s:<database_password>@<database_ip>:5432 /test_k8s
+  DEBUG: "FALSE"
+  SECRET_KEY: <some_key> 
+```
 
 ```sh 
 kubectl apply -f config.yml
 ```
 
-> #### Чтобы обновить configmap 
->
-> ```sh 
-> kubectl apply -f config.yml
-> ```
-> 
-> ```sh 
-> kubectl rollout restart deployment
-> ```
+**Обновление configmap** 
 
-### Разверните деплоимент
+```sh 
+kubectl apply -f config.yml
+```
+ 
+```sh 
+kubectl rollout restart deployment
+```
+### Запуск minikube манифестов
+
+- Деплоимент  
 
 ```sh 
 kubectl apply -f django-deployment.yml
 ```
 
-### Запустите сервис
+- Cервис
 
 ```sh 
 minikube service django-service
 ```
 
-### Запустите cronjob для удаления истекших сессий django 
+- Cronjob для удаления истекших сессий django 
 
 ```sh 
 kubectl apply -f django-cronjon.yml
 ```
 
-- Можно запустить принудительно
 
-
-```sh 
-kubectl create job clearsession --from=cronjob/django-clearsession-cronjob 
-```
-
-### Настройка ingress
-
-1. активируйте ingress в minikube
+- Ingress
 
 ```sh 
 minikbue addons enable ingress
 ```
 
-2. измените домен в `/etc/hosts` и добавте его в ALLOWED_HOSTS в файле `config.yml`
-
-3. добавьте его в `ingress-django.yml`
+**В манифесте `ingress` добавьте домен сайта** 
 
 ```yaml 
 spec:
@@ -136,13 +139,9 @@ spec:
   - host: <you_domain>
 ```
 
-4. запустите ingress в класстере
-
 ```sh 
 kubectk apply -f ingress-django.yml
 ```
-
-5. Запустите tunnel
 
 ```sh 
 minikube tunnel
