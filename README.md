@@ -63,25 +63,25 @@ docker-compose -f docker-compose.k8s.yml build -q
 minikube start --driver docker
 ```
 
-**Загрузите в minikube docker-образ: 
+**Загрузите в minikube docker-образ:** 
 
 ```sh 
 minikube image load django_app 
 ```
 
-**Запустите контейнер с бд:
+**Запустите контейнер с бд:**
 
 ```sh 
 docker-compose --env-file .env.k8s -f docker-compose.k8s.yml up -d db 
 ```
 
-**Перейдите в директорию с манифестами minikube:
+**Перейдите в директорию с манифестами minikube:**
 
 ```sh 
 cd minikube_deploy/
 ```
 
-**Создайте config-файл с переменными окружения и подгрузите его в minikube:
+**Создайте config-файл с переменными окружения и подгрузите его в minikube:**
 
 [Документация ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
 
@@ -121,13 +121,13 @@ kubectl get configmap -o yaml
 
 ### Запуск minikube манифестов
 
-**Создаем деплоимент:  
+**Создаем деплоимент:** 
 
 ```sh 
 kubectl apply -f django-deployment.yml
 ```
 
-**Заполняем базу данных тестовыми данными:
+**Заполняем базу данных тестовыми данными:**
 
 ```sh 
 kubectl apply -f django-migrate-job.yml
@@ -138,13 +138,13 @@ kubectl exec -it <pod_name> -- ./manage.py createsuperuser
 ```
 Имя пода можно посмотреть через `kubectl get pods`
 
-**Применяем манифест Cronjob для удаления истекших сессий django: 
+**Применяем манифест Cronjob для удаления истекших сессий django:** 
 
 ```sh 
 kubectl apply -f django-cronjon.yml
 ```
 
-**Запускаем Ingress:
+**Запускаем Ingress:**
 
 ```sh 
 minikube addons enable ingress
@@ -168,7 +168,7 @@ minikube tunnel
 
 ### Проверка работы кластера minikube
 
-**Запустите dashboard:
+**Запустите dashboard:**
 
 ```sh 
 minikube dashboard
