@@ -37,7 +37,7 @@ $ docker-compose run web ./manage.py createsuperuser
 
 ### Подготовка окружения
 
-- Добавьте в рабочую директорию `.env.k8s` файл со следующими перемеными окружения:
+**Добавьте в рабочую директорию `.env.k8s` файл со следующими перемеными окружения:**
 
 `SECRET_KEY` -- обязательная секретная настройка Django. Это соль для генерации хэшей. Значение может быть любым, важно лишь, чтобы оно никому не было известно. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#secret-key).
 
@@ -49,41 +49,43 @@ $ docker-compose run web ./manage.py createsuperuser
 
 `DATABASE_IP` -- публичный ip адрес базы данных, чтобы сервисы внутри кубера могли с ней общаться.
 
-- Соберите docker-образы
+**Соберите docker-образы:**
 
 ```sh 
 docker-compose -f docker-compose.k8s.yml build -q 
 ```
 
-- Установите и запустите minikube. [Документация по установке](https://minikube.sigs.k8s.io/docs/start/)
+**Установите и запустите minikube:** 
 
-**Существует несколько вариантов запуска minikube, выберите оптимальный для себя.** [Документация](https://minikube.sigs.k8s.io/docs/start/)  
+Существует несколько вариантов запуска minikube, выберите оптимальный для себя. [Документация по установке.](https://minikube.sigs.k8s.io/docs/start/)  
 
 ```sh 
 minikube start --driver docker
 ```
 
-- Загрузите в minikube docker-образ. 
+**Загрузите в minikube docker-образ: 
 
 ```sh 
 minikube image load django_app 
 ```
 
-- Запустите контейнер с бд.
+**Запустите контейнер с бд:
 
 ```sh 
 docker-compose --env-file .env.k8s -f docker-compose.k8s.yml up -d db 
 ```
 
-- Перейдите в директорию с манифестами minikube
+**Перейдите в директорию с манифестами minikube:
 
 ```sh 
 cd minikube_deploy/
 ```
 
-- Создайте config-файл с переменными окружения и подгрузите его в minikube. [Документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+**Создайте config-файл с переменными окружения и подгрузите его в minikube:
 
-**Пример конфига**
+[Документация ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
+
+Пример конфига
 
 ```yaml 
 apiVersion: v1
@@ -101,7 +103,7 @@ data:
 kubectl apply -f config.yml
 ```
 
-**Если вы измените данные в `config.yml`, то нужно сделать рестарт подов с контейнерами** 
+- Если вы измените данные в `config.yml`, то нужно сделать рестарт подов с контейнерами: 
 
 ```sh 
 kubectl apply -f config.yml
@@ -111,7 +113,7 @@ kubectl apply -f config.yml
 kubectl rollout restart deployment
 ```
 
-Посмотреть что находится в ConfigMap кластера можно так
+- Посмотреть что находится в ConfigMap кластера можно так:
 
 ```sh 
 kubectl get configmap -o yaml
@@ -119,13 +121,13 @@ kubectl get configmap -o yaml
 
 ### Запуск minikube манифестов
 
-- Создаем деплоимент  
+**Создаем деплоимент:  
 
 ```sh 
 kubectl apply -f django-deployment.yml
 ```
 
-- Заполняем базу данных тестовыми данными
+**Заполняем базу данных тестовыми данными:
 
 ```sh 
 kubectl apply -f django-migrate-job.yml
@@ -134,22 +136,21 @@ kubectl apply -f django-migrate-job.yml
 ```sh 
 kubectl exec -it <pod_name> -- ./manage.py createsuperuser
 ```
-
 Имя пода можно посмотреть через `kubectl get pods`
 
-- Применяем манифест Cronjob для удаления истекших сессий django 
+**Применяем манифест Cronjob для удаления истекших сессий django: 
 
 ```sh 
 kubectl apply -f django-cronjon.yml
 ```
 
-- Запускаем Ingress
+**Запускаем Ingress:
 
 ```sh 
 minikube addons enable ingress
 ```
 
-**В манифесте `ingress` добавьте домен сайта** 
+- В манифесте `ingress-django.yml` добавьте домен сайта: 
 
 ```yaml 
 spec:
@@ -167,13 +168,13 @@ minikube tunnel
 
 ### Проверка работы кластера minikube
 
-- Запустите dashboard
+**Запустите dashboard:
 
 ```sh 
 minikube dashboard
 ```
 
-Если все успешно, то будет примерно такая картинка:
+- Если все успешно, то будет примерно такая картинка:
 
 ![Minikube dashboard](./images/minikube_screen.png)
 
