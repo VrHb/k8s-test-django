@@ -179,5 +179,61 @@ minikube dashboard
 ![Minikube dashboard](./images/minikube_screen.png)
 
 
+### ОПЦИОНАЛЬНО можно запустить postgresql в кластере
+
+**Устанавливаем helm:**
+
+[Документация](https://helm.sh/docs/intro/install/)
+ 
+**Устанавливаем и настраиваем postgres в кластер:** 
+ 
+ ```sh 
+ helm install <db_service_name> oci://registry-1.docker.io/bitnamicharts/postgresql
+ ```
+
+- Подключаеся к поду с бд:
+
+```sh 
+kubectl run <db_pod_name> --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:16.1.0-debian-11-r4 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+       --command -- psql --host <db_pod_name> -U postgres -d postgres -p 5432
+ ```
+
+ - Создаем бд:
+
+```sql 
+CREATE DATABASE test_k8s;
+CREATE USER test_k8s WITH ENCRYPTED PASSWORD <passwor_for_db>;
+GRANT ALL PRIVELEGES ON DATABASE test_k8s TO test_k8s;
+ALTER DATABASE test_k8s OWNER TO test_k8s;
+```
+
+**Меняем в `config.yml` информацию для связи контейнера с сервисом бд внутри кластера:**
+
+```yaml
+data:
+  DATABASE_URL: postgres://test_k8s:<db_password>@<SERVICE_DB_IP>:5432/test_k8s
+```
+Для связи в с контейнером снаружи кластера у нас использовался публичный IP хоста, теперь мы меняем его на IP сервиса базы данных внутри кластера
+![Minikube_services](./images/minikube_services.png)
+ 
+```sh 
+kubectl apply -f config.yml
+```
+ 
+```sh 
+kubectl rollout restart deployment
+```
+
+**Заполняем базу данных тестовыми данными:**
+
+```sh 
+kubectl apply -f django-migrate-job.yml
+```
+
+```sh 
+kubectl exec -it <pod_name> -- ./manage.py createsuperuser
+```
+Имя пода можно посмотреть через `kubectl get pods`
+
 
  
