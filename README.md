@@ -66,13 +66,19 @@ minikube start --driver docker
 - Загрузите в minikube docker-образ. 
 
 ```sh 
-minikube load django_app 
+minikube image load django_app 
 ```
 
 - Запустите контейнер с бд.
 
 ```sh 
-docker-compose -f docker-compose.k8s.yml up -d db 
+docker-compose --env-file .env.k8s -f docker-compose.k8s.yml up -d db 
+```
+
+- Перейдите в директорию с манифестами minikube
+
+```sh 
+cd minikube_deploy/
 ```
 
 - Создайте config-файл с переменными окружения и подгрузите его в minikube. [Документация](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
@@ -95,7 +101,7 @@ data:
 kubectl apply -f config.yml
 ```
 
-**Обновление configmap** 
+**Если вы измените данные в `config.yml`, то нужно сделать рестарт подов с контейнерами** 
 
 ```sh 
 kubectl apply -f config.yml
@@ -104,31 +110,43 @@ kubectl apply -f config.yml
 ```sh 
 kubectl rollout restart deployment
 ```
+
+Посмотреть что находится в ConfigMap кластера можно так
+
+```sh 
+kubectl get configmap -o yaml
+```
+
 ### Запуск minikube манифестов
 
-- Деплоимент  
+- Создаем деплоимент  
 
 ```sh 
 kubectl apply -f django-deployment.yml
 ```
 
-- Cервис
+- Заполняем базу данных тестовыми данными
 
 ```sh 
-minikube service django-service
+kubectl apply -f django-migrate-job.yml
 ```
 
-- Cronjob для удаления истекших сессий django 
+```sh 
+kubectl exec -it <pod_name> -- ./manage.py createsuperuser
+```
+
+Имя пода можно посмотреть через `kubectl get pods`
+
+- Применяем манифест Cronjob для удаления истекших сессий django 
 
 ```sh 
 kubectl apply -f django-cronjon.yml
 ```
 
-
-- Ingress
+- Запускаем Ingress
 
 ```sh 
-minikbue addons enable ingress
+minikube addons enable ingress
 ```
 
 **В манифесте `ingress` добавьте домен сайта** 
@@ -140,12 +158,25 @@ spec:
 ```
 
 ```sh 
-kubectk apply -f ingress-django.yml
+kubectl apply -f ingress-django.yml
 ```
 
 ```sh 
 minikube tunnel
 ```
+
+### Проверка работы кластера minikube
+
+- Запустите dashboard
+
+```sh 
+minikube dashboard
+```
+
+Если все успешно, то будет примерно такая картинка:
+
+![Minikube dashboard](./images/minikube_screen.png)
+
 
 
  
