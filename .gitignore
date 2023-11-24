@@ -4,3 +4,4 @@ config.yml
 *.py[cod]
 *$py.class
 .env
+.env.k8s
