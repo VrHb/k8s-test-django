@@ -207,7 +207,7 @@ GRANT ALL PRIVELEGES ON DATABASE test_k8s TO test_k8s;
 ALTER DATABASE test_k8s OWNER TO test_k8s;
 ```
 
-** Настраиваем переменные**
+**Настраиваем переменные окружения в кластере:**
 
 - Удаляем старый конфиг с переменными:
 
@@ -246,6 +246,3 @@ kubectl apply -f django-migrate-job.yml
 ```sh 
 kubectl exec -it <django_pod_name> -- ./manage.py createsuperuser
 ```
-
-
- 
