@@ -22,6 +22,8 @@ spec:
       - name: djangoapp
         image: django_app
         envFrom:
+          - secretRef:
+              name: django-secret
           - configMapRef:
               name: django-config
         imagePullPolicy: Never

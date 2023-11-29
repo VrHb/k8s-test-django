@@ -77,6 +77,12 @@ docker-compose --env-file .env.k8s -f docker-compose.k8s.yml up -d db
 cd minikube_deploy/
 ```
 
+**Загрузите переменные окружения в minikube**
+
+```sh 
+kubectl create secret generic django-secret --from-env-file=../.env.k8s
+```
+
 **Создайте config-файл с переменными окружения и подгрузите его в minikube:**
 
 [Документация ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
@@ -90,9 +96,7 @@ metadata:
   name: django-config
 data:
   ALLOWED_HOSTS: 127.0.0.1, <site_domain> 
-  DATABASE_URL: postgres://test_k8s:<database_password>@<database_ip>:5432 /test_k8s
   DEBUG: "FALSE"
-  SECRET_KEY: <some_key> 
 ```
 
 ```sh 
@@ -203,21 +207,32 @@ GRANT ALL PRIVELEGES ON DATABASE test_k8s TO test_k8s;
 ALTER DATABASE test_k8s OWNER TO test_k8s;
 ```
 
-**Меняем в `config.yml` информацию для связи контейнера с сервисом бд внутри кластера:**
+** Настраиваем переменные**
 
-- Для связи в с контейнером снаружи кластера у нас использовался публичный IP хоста, теперь мы меняем его на CLUSTER_IP сервиса базы данных внутри кластера:
-
-![Minikube_services](./images/minikube_services.png)
- 
-```yaml
-data:
-  DATABASE_URL: postgres://test_k8s:<db_password>@<CLUSTER_IP>:5432/test_k8s
-```
+- Удаляем старый конфиг с переменными:
 
 ```sh 
-kubectl apply -f config.yml
+kubectl delete secret django-secret
 ```
- 
+
+- Меняем IP-адрес в `.env.k8s` файле
+
+Для связи в с контейнером снаружи кластера у нас использовался публичный IP хоста, теперь мы меняем его на CLUSTER_IP сервиса базы данных внутри кластера:
+
+![Minikube_services](./images/minikube_services.png)
+
+```sh 
+DATABASE_URL=postgres://test_k8s:<db_password>@<CLUSTER_IP>:5432/test_k8s
+```
+
+- Загружаем измененные переменные окружения в minikube:
+
+```sh 
+kubectl create secret generic django-secret --from-env-file=../.env.k8s
+```
+
+- Перезапускаем деплоимент
+
 ```sh 
 kubectl rollout restart deployment
 ```
