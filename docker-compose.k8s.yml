@@ -14,7 +14,6 @@ services:
     build: backend_main_django
     image: django_app
     platform: linux/arm64/v8
-    env_file: ./.env.k8s
     volumes:
       - ./backend_main_django:/code
     ports:
