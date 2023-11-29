@@ -71,7 +71,7 @@ minikube image load django_app
 docker-compose --env-file .env.k8s -f docker-compose.k8s.yml up -d db 
 ```
 
-**Перейдите в директорию с манифестами minikube:**
+**Перейдите в директорию с манифестами kubernetes:**
 
 ```sh 
 cd minikube_deploy/
@@ -119,7 +119,7 @@ kubectl rollout restart deployment
 kubectl get configmap -o yaml
 ```
 
-### Запуск minikube манифестов
+### Запуск приложения
 
 **Создаем деплоимент:** 
 
