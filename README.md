@@ -121,7 +121,7 @@ kubectl get configmap -o yaml
 
 ### Запуск приложения
 
-**Запускам сервис:**
+**Запускаем сервис:**
 
 ```sh 
 kubectl apply -f svc.yml
