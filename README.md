@@ -121,6 +121,12 @@ kubectl get configmap -o yaml
 
 ### Запуск приложения
 
+**Запускам сервис:**
+
+```sh 
+kubectl apply -f svc.yml
+```
+
 **Создаем деплоимент:** 
 
 ```sh 
